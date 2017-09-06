@@ -40,6 +40,7 @@ namespace ParallelPipelines
             var webHost = WebHost.CreateDefaultBuilder().
                 ConfigureServices(x =>
                 {
+                    //var builder = x.AddMvc();
                     x.AddMvc();
                     x.AddSwaggerGen(c =>
                     {
@@ -53,6 +54,12 @@ namespace ParallelPipelines
                     foreach (var item in dir.GetFileSystemInfos("Module.*.dll", SearchOption.AllDirectories))
                     {
                         var assembly = Assembly.LoadFrom(item.FullName);
+
+                        //var parts = DefaultAssemblyPartDiscoveryProvider.DiscoverAssemblyParts(assembly.GetName().Name);
+                        //foreach (var part in parts)
+                        //{
+                        //    builder.PartManager.ApplicationParts.Add(part);
+                        //}
 
 
 
@@ -97,7 +104,16 @@ namespace ParallelPipelines
                     ccontext.RequestServices = null;
                 }
             });
-            branchBuilder.Run(_next);
+            // branchBuilder.Run(_next);
+            branchBuilder.UseSwagger();
+
+            // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint.
+            branchBuilder.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+            });
+
+            branchBuilder.UseMvc();
 
             return branchBuilder.Build();
 
