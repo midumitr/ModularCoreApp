@@ -13,6 +13,8 @@ using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using Swashbuckle.AspNetCore.Swagger;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace ParallelPipelines
 {
@@ -41,14 +43,18 @@ namespace ParallelPipelines
                 ConfigureServices(x =>
                 {
                     //var builder = x.AddMvc();
-                    x.AddMvc();
+                    x.AddMvc().AddJsonOptions(options => {
+                        options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                        options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+
+                    });
                     x.AddSwaggerGen(c =>
                     {
                         c.SwaggerDoc("v1", new Info { Title = "My API", Version = "v1" });
                     });
                    
-                    var dir = new DirectoryInfo(Directory.GetCurrentDirectory());
-
+                    var dir = new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(),"App_Data"));
+                   
 
 
                     foreach (var item in dir.GetFileSystemInfos("Module.*.dll", SearchOption.AllDirectories))
@@ -104,16 +110,10 @@ namespace ParallelPipelines
                     ccontext.RequestServices = null;
                 }
             });
-            // branchBuilder.Run(_next);
-            branchBuilder.UseSwagger();
+            
+            branchBuilder.Run(_next);
+           
 
-            // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint.
-            branchBuilder.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-            });
-
-            branchBuilder.UseMvc();
 
             return branchBuilder.Build();
 
